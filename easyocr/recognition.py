@@ -6,8 +6,7 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 import numpy as np
 from collections import OrderedDict
-
-from .model import Model
+import importlib
 from .utils import CTCLabelConverter
 import math
 
@@ -55,7 +54,6 @@ class ListDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         img = self.image_list[index]
-
         return Image.fromarray(img, 'L')
 
 class AlignCollate(object):
@@ -124,7 +122,6 @@ def recognizer_predict(model, converter, test_loader, batch_max_length,\
                 # Select max probabilty (greedy decoding) then decode index to character
                 _, preds_index = preds_prob.max(2)
                 preds_index = preds_index.view(-1)
-                preds_index = preds_index.view(-1)
                 preds_str = converter.decode_greedy(preds_index.data, preds_size.data)
             elif decoder == 'beamsearch':
                 k = preds_prob.cpu().detach().numpy()
@@ -141,12 +138,20 @@ def recognizer_predict(model, converter, test_loader, batch_max_length,\
 
     return result
 
-def get_recognizer(input_channel, output_channel, hidden_size, character,\
-                   separator_list, dict_list, model_path, device = 'cpu'):
+def get_recognizer(recog_network, network_params, character,\
+                   separator_list, dict_list, model_path,\
+                   device = 'cpu'):
 
     converter = CTCLabelConverter(character, separator_list, dict_list)
     num_class = len(converter.character)
-    model = Model(input_channel, output_channel, hidden_size, num_class)
+
+    if recog_network == 'standard':
+        model_pkg = importlib.import_module("easyocr.model.model")
+    elif recog_network == 'lite':
+        model_pkg = importlib.import_module("easyocr.model.vgg_model")
+    else:
+        model_pkg = importlib.import_module(recog_network)
+    model = model_pkg.Model(num_class=num_class, **network_params)
 
     if device == 'cpu':
         state_dict = torch.load(model_path, map_location=device)

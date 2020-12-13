@@ -6,20 +6,22 @@
 [![Tweet](https://img.shields.io/twitter/url/https/github.com/JaidedAI/EasyOCR.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20library:%20EasyOCR%20https://github.com/JaidedAI/EasyOCR)
 [![Twitter](https://img.shields.io/badge/twitter-@JaidedAI-blue.svg?style=flat)](https://twitter.com/JaidedAI)
 
-Ready-to-use OCR with 40+ languages supported including Chinese, Japanese, Korean and Thai.
+Ready-to-use OCR with 70+ languages supported including Chinese, Japanese, Korean and Thai.
 
-## What's new?
-- 4 August 2020 - Version 1.1.6
-    - New language support for Russian, Serbian, Belarusian, Bulgarian, Mongolian, Ukranian (Cyrillic Script) and Arabic, Persian(Farsi), Urdu, Uyghur (Arabic Script)
-    - Docker file and Ainize demo (thanks @ghandic and @Wook-2)
-    - Better production friendly with Logger and custom model folder location (By setting ` model_storage_directory` when create `Reader` instance) (thanks @jpotter)
+## What's new
+- 17 November 2020 - Version 1.2
+    - New language supports for Telugu and Kannada. These are experimental lite recognition models. Their file sizes are only around 7% of other models and they are ~6x faster at inference with CPU.
+- 12 October 2020 - Version 1.1.10
+    - Faster `beamsearch` decoder (thanks @amitbcp)
+    - Better code structure (thanks @susmith98)
+    - New language supports for Haryanvi(bgc), Sanskrit(sa) (Devanagari Script) and Manipuri(mni) (Bengari Script)
+- 31 August 2020 - Version 1.1.9
+    - Add `detect` and `recognize` method for performing text detection and recognition separately
 
-- 24 July 2020 - Version 1.1.5
-    - New language support for Hindi, Marathi, Nepali (Devanagari Script)
-    - Automatic word merging into paragraph (Use this feature by setting `readtext`'s parameter `'paragraph' = True`)
 - [Read all released notes](https://github.com/JaidedAI/EasyOCR/blob/master/releasenotes.md)
 
-## What's coming next?
+## What's coming next
+- Faster processing time
 - [New language support](https://github.com/JaidedAI/EasyOCR/issues/91)
 
 ## Examples
@@ -32,24 +34,7 @@ Ready-to-use OCR with 40+ languages supported including Chinese, Japanese, Korea
 
 ## Supported Languages
 
-We are currently supporting the following 58 languages.
-
-Afrikaans (af), Arabic (ar), Azerbaijani (az), Belarusian (be), Bulgarian (bg), Bosnian (bs),
-Simplified Chinese (ch_sim), Traditional Chinese (ch_tra), Czech (cs), Welsh (cy),
-Danish (da), German (de), English (en), Spanish (es), Estonian (et), Persian (Farsi) (fa)
-French (fr), Irish (ga), Hindi(hi), Croatian (hr), Hungarian (hu),
-Indonesian (id), Icelandic (is), Italian (it), Japanese (ja), Korean (ko),
-Kurdish (ku), Latin (la), Lithuanian (lt), Latvian (lv), Maori (mi), Mongolian (mn),
-Marathi (mr), Malay (ms), Maltese (mt), Nepali (ne), Dutch (nl), Norwegian (no),
-Occitan (oc), Polish (pl), Portuguese (pt), Romanian (ro), Russian (ru),
-Serbian (cyrillic)(rs_cyrillic), Serbian (latin)(rs_latin),
-Slovak (sk) (need revisit), Slovenian (sl), Albanian (sq), Swedish (sv),
-Swahili (sw), Thai (th), Tagalog (tl), Turkish (tr), Uyghur (ug), Ukranian(uk), Urdu (ur),
-Uzbek (uz), Vietnamese (vi) (need revisit)
-
-List of characters is in folder [easyocr/character](https://github.com/JaidedAI/EasyOCR/tree/master/easyocr/character).
-If you are native speaker of any language and think we should add or remove any character,
-please create an issue and/or pull request (like [this one](https://github.com/JaidedAI/EasyOCR/pull/15)).
+We are currently supporting 70+ languages. See [list of supported languages](https://www.jaided.ai/easyocr).
 
 ## Installation
 
@@ -116,23 +101,28 @@ Result:
 Model weight for chosen language will be automatically downloaded or you can
 download it manually from the following links and put it in '~/.EasyOCR/model' folder
 
-- [text detection model (CRAFT)](https://drive.google.com/file/d/1tdItXPoFFeKBtkxb9HBYdBGo-SyMg1m0/view?usp=sharing)
-- [latin model](https://drive.google.com/file/d/1M7Lj3OtUsaoppD4ZKudjepzCMsXKlxp3/view?usp=sharing)
-- [chinese (traditional) model](https://drive.google.com/file/d/1xWyQC9NIZHNtgz57yofgj2N91rpwBrjh/view?usp=sharing)
-- [chinese (simplified) model](https://drive.google.com/file/d/1-jN_R1M4tdlWunRnD5T_Yqb7Io5nNJoR/view?usp=sharing)
-- [japanese model](https://drive.google.com/file/d/1ftAeVI6W8HvpLL1EwrQdvuLss23vYqPu/view?usp=sharing)
-- [korean model](https://drive.google.com/file/d/1UBKX7dHybcwKK_i2fYx_CXaL1hrTzQ6y/view?usp=sharing)
-- [thai model](https://drive.google.com/file/d/14BEuxcfmS0qWi3m9RsxwcUsjavM3rFMa/view?usp=sharing)
-- [devanagari model](https://drive.google.com/file/d/1uCiMuBl8H8GAwapEjYUVYYdoOivyGzel/view?usp=sharing)
-- [cyrillic model](https://drive.google.com/file/d/1SBmKXV5dpN5Cekacqk3ms1xq3dGbDuu1/view?usp=sharing)
+- [text detection model (CRAFT)](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/craft_mlt_25k.zip)
+- [latin model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/latin.zip)
+- [chinese (traditional) model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/chinese.zip)
+- [chinese (simplified) model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/chinese_sim.zip)
+- [japanese model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/japanese.zip)
+- [korean model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/korean.zip)
+- [thai model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/thai.zip)
+- [devanagari model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/devanagari.zip)
+- [cyrillic model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/cyrillic.zip)
+- [arabic model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/arabic.zip)
+- [tamil model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.1.7/tamil.zip)
+- [bengali model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.1.8/bengali.zip)
+- [telugu model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.2/telugu.zip)
+- [kannada model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.2/kannada.zip)
 
 In case you do not have GPU or your GPU has low memory, you can run it in CPU mode by adding gpu = False
 
 ``` python
-reader = easyocr.Reader(['th','en'], gpu = False)
+reader = easyocr.Reader(['ch_sim','en'], gpu = False)
 ```
 
-See [Documentation](#API-Documentation)
+For more information, read [tutorial](https://www.jaided.ai/easyocr/tutorial) and [API Documentation](https://www.jaided.ai/easyocr/documentation).
 
 #### Run on command line
 
@@ -142,19 +132,13 @@ $ easyocr -l ch_sim en -f chinese.jpg --detail=1 --gpu=True
 
 ## Implementation Roadmap
 
-#### Phase 1 (Now - October, 2020)
-
-1. Language packs: Hindi, Arabic, Cyrillic alphabet, etc. Aiming to cover > 80-90% of world's population. See [current development list](https://github.com/JaidedAI/EasyOCR/issues/91). Also improve existing languages.
+1. Language packs: Expand support to more languages. We are aiming to cover > 80-90% of world's population. Also improve existing languages.
 2. Better documentation and api
 3. Language model for better decoding
-
-#### Phase 2 (After October, 2020)
-
-1. Handwritten support: Network architecture should not matter.
-The key is using GAN to generate realistic handwritten dataset.
-2. Faster processing time: model pruning (lite version) / quantization / export to other platforms (ONNX?)
-3. Open Dataset and model training pipeline
-4. Restructure code to support swappable detection and recognition algorithm.
+4. Handwritten support: The key is using GAN to generate realistic handwritten dataset.
+5. Faster processing time: model pruning (lite version) / quantization / export to other platforms (ONNX?)
+6. Open Dataset and model training pipeline
+7. Restructure code to support swappable detection and recognition algorithm.
 The api should be as easy as
 ``` python
 reader = easyocr.Reader(['en'], detection='DB', recognition = 'CNN_Transformer')
@@ -208,55 +192,6 @@ Lastly, please understand that my priority will have to go to popular language o
 
 See [List of languages in development](https://github.com/JaidedAI/EasyOCR/issues/91)
 
-## API Documentation
+## Business Inquiries
 
-#### `Reader` class
-> Base class for EasyOCR
->
-> **Parameters**
-> * **lang_list** (list) - list of language code you want to recognize, for example ['ch_sim','en']. List of supported language code is [here](#Supported-Languages).
-> * **gpu** (bool, string, default = True)
-> * **model_storage_directory** (string, default = None)
-> * **download_enabled** (bool, default = True)
->
-> **Attribute**
-> * **lang_char** - Show all available characters in current model
-
-#### `readtext` method
-> Main method for Reader object. There are 4 groups of parameter: General,
-Contrast, Text Detection and Bounding Box Merging.
->
-> **Parameters 1: General**
-> * **image** (string, numpy array, byte) - Input image
-> * **decoder** (string, default = 'greedy') - options are 'greedy', 'beamsearch' and 'wordbeamsearch'.
-> * **beamWidth** (int, default = 5) - How many beam to keep when decoder = 'beamsearch' or 'wordbeamsearch'
-> * **batch_size** (int, default = 1) - batch_size>1 will make EasyOCR faster but use more memory
-> * **workers** (int, default = 0) - Number thread used in of dataloader
-> * **allowlist** (string) - Force EasyOCR to recognize only subset of characters. Useful for specific problem (E.g. license plate, etc.)
-> * **blocklist** (string) - Block subset of character. This argument will be ignored if allowlist is given.
-> * **detail** (int, default = 1) - Set this to 0 for simple output
-> * **paragraph** (bool, default = False) - Combine result into paragraph
->
-> **Parameters 2: Contrast**
-> * **contrast_ths** (float, default = 0.1) - Text box with contrast lower than this value will be passed into model 2 times. First is with original image and second with contrast adjusted to 'adjust_contrast' value. The one with more confident level will be returned as a result.
-> * **adjust_contrast** (float, default = 0.5) - target contrast level for low contrast text box
->
-> **Parameters 3: Text Detection (from CRAFT)**
-> * **text_threshold** (float, default = 0.7) - Text confidence threshold
-> * **low_text** (float, default = 0.4) -  Text low-bound score
-> * **link_threshold** (float, default = 0.4) - Link confidence threshold
-> * **canvas_size** (int, default = 2560) - Maximum image size. Image bigger than this value will be resized down.  
-> * **mag_ratio** (float, default = 1) - Image magnification ratio
->
-> **Parameters 4: Bounding Box Merging**
->
-> This set of parameter controls when adjacent bounding boxes merge with each other. Every parameters except 'slope_ths' is in the unit of box height.
->
-> ![width_ths](examples/width_ths.png)
-> * **slope_ths** (float, default = 0.1) - Maximum slope (delta y/delta x) to considered merging. Low value means tiled boxes will not be merged.
-> * **ycenter_ths** (float, default = 0.5) - Maximum shift in y direction. Boxes with different level should not be merged.
-> * **height_ths** (float, default = 0.5) - Maximum different in box height. Boxes with very different text size should not be merged.
-> * **width_ths** (float, default = 0.5) - Maximum horizontal distance to merge boxes.
-> * **add_margin** (float, default = 0.1) - Extend bounding boxes in all direction by certain value. This is important for language with complex script (E.g. Thai).
->
-> **Return** (list)
+For Enterprise Support, [Jaided AI](https://www.jaided.ai/) offers full service for custom OCR/AI systems from building, maintenance and deployment. Click [here](https://www.jaided.ai/contact) to contact us.
