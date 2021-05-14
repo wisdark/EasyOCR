@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import math
 import cv2
-from PIL import Image
+from PIL import Image, JpegImagePlugin
 import hashlib
 import sys, os
 from zipfile import ZipFile
@@ -329,14 +329,14 @@ class CTCLabelConverter(object):
         index = 0
         for l in length:
             t = text_index[index:index + l]
-
-            char_list = []
-            for i in range(l):
-                # removing repeated characters and blank (and separator).
-                if t[i] not in self.ignore_idx and (not (i > 0 and t[i - 1] == t[i])):
-                    char_list.append(self.character[t[i]])
-            text = ''.join(char_list)
-
+            # Returns a boolean array where true is when the value is not repeated
+            a = np.insert(~((t[1:]==t[:-1])),0,True)
+            # Returns a boolean array where true is when the value is not in the ignore_idx list
+            b = ~np.isin(t,np.array(self.ignore_idx))
+            # Combine the two boolean array
+            c = a & b
+            # Gets the corresponding character according to the saved indexes
+            text = ''.join(np.array(self.character)[t[c.nonzero()]])
             texts.append(text)
             index += l
         return texts
@@ -404,7 +404,7 @@ def four_point_transform(image, rect):
 
     return warped
 
-def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, width_ths = 1.0, add_margin = 0.05):
+def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, width_ths = 1.0, add_margin = 0.05, sort_output = True):
     # poly top-left, top-right, low-right, low-left
     horizontal_list, free_list,combined_list, merged_list = [],[],[],[]
 
@@ -418,8 +418,10 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
             y_min = min([poly[1],poly[3],poly[5],poly[7]])
             horizontal_list.append([x_min, x_max, y_min, y_max, 0.5*(y_min+y_max), y_max-y_min])
         else:
-            height = np.linalg.norm( [poly[6]-poly[0],poly[7]-poly[1]])
-            margin = int(1.44*add_margin*height)
+            height = np.linalg.norm([poly[6]-poly[0],poly[7]-poly[1]])
+            width = np.linalg.norm([poly[2]-poly[0],poly[3]-poly[1]])
+
+            margin = int(1.44*add_margin*min(width, height))
 
             theta13 = abs(np.arctan( (poly[1]-poly[5])/np.maximum(10, (poly[0]-poly[4]))))
             theta24 = abs(np.arctan( (poly[3]-poly[7])/np.maximum(10, (poly[2]-poly[6]))))
@@ -434,7 +436,8 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
             y4 = poly[7] + np.sin(theta24)*margin
 
             free_list.append([[x1,y1],[x2,y2],[x3,y3],[x4,y4]])
-    horizontal_list = sorted(horizontal_list, key=lambda item: item[4])
+    if sort_output:
+        horizontal_list = sorted(horizontal_list, key=lambda item: item[4])
 
     # combine box
     new_box = []
@@ -446,7 +449,7 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
             new_box.append(poly)
         else:
             # comparable height and comparable y_center level up to ths*height
-            if (abs(np.mean(b_height) - poly[5]) < height_ths*np.mean(b_height)) and (abs(np.mean(b_ycenter) - poly[4]) < ycenter_ths*np.mean(b_height)):
+            if abs(np.mean(b_ycenter) - poly[4]) < ycenter_ths*np.mean(b_height):
                 b_height.append(poly[5])
                 b_ycenter.append(poly[4])
                 new_box.append(poly)
@@ -461,7 +464,7 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
     for boxes in combined_list:
         if len(boxes) == 1: # one box per line
             box = boxes[0]
-            margin = int(add_margin*box[5])
+            margin = int(add_margin*min(box[1]-box[0],box[5]))
             merged_list.append([box[0]-margin,box[1]+margin,box[2]-margin,box[3]+margin])
         else: # multiple boxes per line
             boxes = sorted(boxes, key=lambda item: item[0])
@@ -469,13 +472,16 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
             merged_box, new_box = [],[]
             for box in boxes:
                 if len(new_box) == 0:
+                    b_height = [box[5]]
                     x_max = box[1]
                     new_box.append(box)
                 else:
-                    if abs(box[0]-x_max) < width_ths *(box[3]-box[2]): # merge boxes
+                    if (abs(np.mean(b_height) - box[5]) < height_ths*np.mean(b_height)) and (abs(box[0]-x_max) < width_ths *(box[3]-box[2])): # merge boxes
+                        b_height.append(box[5])
                         x_max = box[1]
                         new_box.append(box)
                     else:
+                        b_height = [box[5]]
                         x_max = box[1]
                         merged_box.append(new_box)
                         new_box = [box]
@@ -489,18 +495,23 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
                     y_min = min(mbox, key=lambda x: x[2])[2]
                     y_max = max(mbox, key=lambda x: x[3])[3]
 
-                    margin = int(add_margin*(y_max - y_min))
+                    box_width = x_max - x_min
+                    box_height = y_max - y_min
+                    margin = int(add_margin * (min(box_width, box_height)))
 
                     merged_list.append([x_min-margin, x_max+margin, y_min-margin, y_max+margin])
                 else: # non adjacent box in same line
                     box = mbox[0]
 
-                    margin = int(add_margin*(box[3] - box[2]))
+                    box_width = box[1] - box[0]
+                    box_height = box[3] - box[2]
+                    margin = int(add_margin * (min(box_width, box_height)))
+
                     merged_list.append([box[0]-margin,box[1]+margin,box[2]-margin,box[3]+margin])
     # may need to check if box is really in image
     return merged_list, free_list
 
-def get_image_list(horizontal_list, free_list, img, model_height = 64):
+def get_image_list(horizontal_list, free_list, img, model_height = 64, sort_output = True):
     image_list = []
     maximum_y,maximum_x = img.shape
 
@@ -532,12 +543,14 @@ def get_image_list(horizontal_list, free_list, img, model_height = 64):
     max_ratio = max(max_ratio_hori, max_ratio_free)
     max_width = math.ceil(max_ratio)*model_height
 
-    image_list = sorted(image_list, key=lambda item: item[0][0][1]) # sort by vertical position
+    if sort_output:
+        image_list = sorted(image_list, key=lambda item: item[0][0][1]) # sort by vertical position
     return image_list, max_width
 
-def download_and_unzip(url, filename, model_storage_directory):
+def download_and_unzip(url, filename, model_storage_directory, verbose=True):
     zip_path = os.path.join(model_storage_directory, 'temp.zip')
-    urlretrieve(url, zip_path,reporthook=printProgressBar(prefix = 'Progress:', suffix = 'Complete', length = 50))
+    reporthook = printProgressBar(prefix='Progress:', suffix='Complete', length=50) if verbose else None
+    urlretrieve(url, zip_path, reporthook=reporthook)
     with ZipFile(zip_path, 'r') as zipObj:
         zipObj.extract(filename, model_storage_directory)
     os.remove(zip_path)
@@ -661,6 +674,9 @@ def reformat_input(image):
         if len(image.shape) == 2: # grayscale
             img_cv_grey = image
             img = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+        elif len(image.shape) == 3 and image.shape[2] == 1:
+            img_cv_grey = np.squeeze(image)
+            img = cv2.cvtColor(img_cv_grey, cv2.COLOR_GRAY2BGR)
         elif len(image.shape) == 3 and image.shape[2] == 3: # BGRscale
             img = image
             img_cv_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -668,7 +684,76 @@ def reformat_input(image):
             img = image[:,:,:3]
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             img_cv_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    elif type(image) == JpegImagePlugin.JpegImageFile:
+        image_array = np.array(image)
+        img = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        img_cv_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
-        LOGGER.warning('Invalid input type. Suppoting format = string(file path or url), bytes, numpy array')
+        raise ValueError('Invalid input type. Suppoting format = string(file path or url), bytes, numpy array')
 
     return img, img_cv_grey
+
+
+def make_rotated_img_list(rotationInfo, img_list):
+    result_img_list = img_list[:]
+
+    # add rotated images to original image_list
+    if 90 in rotationInfo:
+        for img_info in img_list:
+            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_90_COUNTERCLOCKWISE)))
+
+    if 180 in rotationInfo:
+        for img_info in img_list:
+            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_180)))
+
+    if 270 in rotationInfo:
+        for img_info in img_list:
+            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_90_CLOCKWISE)))
+
+    return result_img_list
+
+
+def set_result_with_confidence(result_list, origin_len):
+    set_len = len(result_list)//origin_len
+
+    k = 0
+    result_to_split = [[],[],[],[]]
+    for i in range(set_len):
+        tmp_list = []
+        for j in range(origin_len):
+            tmp_list.append(result_list[k])
+            k += 1
+        result_to_split[i] += tmp_list
+
+
+    result1 = result_to_split[0]
+    result2 = result_to_split[1]
+    result3 = result_to_split[2]
+    result4 = result_to_split[3]
+
+    final_result = []
+    for i in range(origin_len):
+        result = result1[i] # format : ([[,],[,],[,],[,]], 'string', confidnece)
+        confidence = result1[i][2]
+
+        if result2:
+            if result2[i][2] > confidence:
+                if len(result2[i][1]) >= len(result[1]):
+                    result = result2[i]
+                    confidence = result2[i][2]
+
+        if result3:
+            if result3[i][2] > confidence:
+                if len(result3[i][1]) >= len(result[1]):
+                    result = result3[i]
+                    confidence = result3[i][2]
+
+        if result4:
+            if result4[i][2] > confidence:
+                if len(result4[i][1]) >= len(result[1]):
+                    result = result4[i]
+                    confidence = result4[i][2]
+
+        final_result.append(result)
+
+    return final_result

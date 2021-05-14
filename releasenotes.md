@@ -1,3 +1,28 @@
+- 20 April 2021 - Version 1.3.1
+    - Add support for PIL image (thanks [@prays](https://github.com/prays))
+    - Add Tajik language (tjk)
+    - Update argument setting for command line
+    - Add `x_ths` and `y_ths` to control merging behavior when `paragraph=True`
+- 21 March 2021 - Version 1.3
+    - Second-generation models: multiple times smaller size, multiple times faster inference, additional characters, comparable accuracy to the first generation models.
+    EasyOCR will choose the latest model by default but you can also specify which model to use by passing `recog_network` argument when creating `Reader` instance.
+    For example, `reader = easyocr.Reader(['en','fr'], recog_network = 'latin_g1')` will use the 1st generation Latin model.
+    - List of all models: [Model hub](https://www.jaided.ai/easyocr/modelhub)
+- 22 February 2021 - Version 1.2.5
+    - Add dynamic quantization for faster CPU inference (it is enabled by default for CPU mode)
+    - More sensible confident score
+- 7 February 2021 - Version 1.2.4
+    - Faster CPU inference speed by using dynamic input shape (recognition rate increases by around 100% for images with a lot of text)
+- 1 February 2021 - Version 1.2.3
+    - Add `setLanguageList` method to `Reader` class. This is a convenient api for changing languages (within the same model) after creating class instance.
+    - Small change on text box merging. (thanks [z-pc](https://github.com/z-pc), see [PR](https://github.com/JaidedAI/EasyOCR/pull/338))
+    - [Basic Demo on website](https://www.jaided.ai/easyocr)
+- 5 January 2021 - Version 1.2.2
+    - Add `optimal_num_chars` to `detect` method. If specified, bounding boxes with estimated number of characters near this value are returned first. (thanks [@adamfrees](https://github.com/adamfrees))
+    - Add `rotation_info` to `readtext` method. Allow EasyOCR to rotate each text box and return the one with the best confident score. Eligible values are 90, 180 and 270. For example, try [90, 180 ,270] for all possible text orientations. (thanks [@mijoo308](https://github.com/mijoo308))
+    - Update [documentation](https://www.jaided.ai/easyocr/documentation).
+- 24 November 2020 - Version 1.2.1
+    - Preparation for user-created models
 - 17 November 2020 - Version 1.2
     - New language supports for Telugu and Kannada. These are experimental lite recognition models. Their file sizes are only around 7% of other models and they are ~6x faster at inference with CPU.
 - 12 October 2020 - Version 1.1.10

@@ -6,22 +6,31 @@
 [![Tweet](https://img.shields.io/twitter/url/https/github.com/JaidedAI/EasyOCR.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20library:%20EasyOCR%20https://github.com/JaidedAI/EasyOCR)
 [![Twitter](https://img.shields.io/badge/twitter-@JaidedAI-blue.svg?style=flat)](https://twitter.com/JaidedAI)
 
-Ready-to-use OCR with 70+ languages supported including Chinese, Japanese, Korean and Thai.
+Ready-to-use OCR with 80+ [supported languages](https://www.jaided.ai/easyocr) and all popular writing scripts including Latin, Chinese, Arabic, Devanagari, Cyrillic and etc.
+
+[Try Demo on our website](https://www.jaided.ai/easyocr)
 
 ## What's new
-- 17 November 2020 - Version 1.2
-    - New language supports for Telugu and Kannada. These are experimental lite recognition models. Their file sizes are only around 7% of other models and they are ~6x faster at inference with CPU.
-- 12 October 2020 - Version 1.1.10
-    - Faster `beamsearch` decoder (thanks @amitbcp)
-    - Better code structure (thanks @susmith98)
-    - New language supports for Haryanvi(bgc), Sanskrit(sa) (Devanagari Script) and Manipuri(mni) (Bengari Script)
-- 31 August 2020 - Version 1.1.9
-    - Add `detect` and `recognize` method for performing text detection and recognition separately
+- 20 April 2021 - Version 1.3.1
+    - Add support for PIL image (thanks [@prays](https://github.com/prays))
+    - Add Tajik language (tjk)
+    - Update argument setting for command line
+    - Add `x_ths` and `y_ths` to control merging behavior when `paragraph=True`
+- 21 March 2021 - Version 1.3
+    - Second-generation models: multiple times smaller size, multiple times faster inference, additional characters, comparable accuracy to the first generation models.
+    EasyOCR will choose the latest model by default but you can also specify which model to use by passing `recog_network` argument when creating `Reader` instance.
+    For example, `reader = easyocr.Reader(['en','fr'], recog_network = 'latin_g1')` will use the 1st generation Latin model.
+    - List of all models: [Model hub](https://www.jaided.ai/easyocr/modelhub)
+- 22 February 2021 - Version 1.2.5
+    - Add dynamic quantization for faster CPU inference (it is enabled by default for CPU mode)
+    - More sensible confident score
+- 7 February 2021 - Version 1.2.4
+    - Faster CPU inference speed by using dynamic input shape (recognition rate increases by around 100% for images with a lot of text)
 
 - [Read all released notes](https://github.com/JaidedAI/EasyOCR/blob/master/releasenotes.md)
 
 ## What's coming next
-- Faster processing time
+- Custom models
 - [New language support](https://github.com/JaidedAI/EasyOCR/issues/91)
 
 ## Examples
@@ -32,9 +41,6 @@ Ready-to-use OCR with 70+ languages supported including Chinese, Japanese, Korea
 
 ![example3](examples/example3.png)
 
-## Supported Languages
-
-We are currently supporting 70+ languages. See [list of supported languages](https://www.jaided.ai/easyocr).
 
 ## Installation
 
@@ -53,12 +59,6 @@ pip install git+git://github.com/jaidedai/easyocr.git
 Note 1: for Windows, please install torch and torchvision first by following the official instruction here https://pytorch.org. On pytorch website, be sure to select the right CUDA version you have. If you intend to run on CPU mode only, select CUDA = None.
 
 Note 2: We also provide Dockerfile [here](https://github.com/JaidedAI/EasyOCR/blob/master/Dockerfile).
-
-#### Try Third-Party Demos
-
-1. [Google Colab](https://colab.fan/easyocr)
-2. [Dockerhub](https://hub.docker.com/r/challisa/easyocr)
-3. [Ainize](https://easyocrgpu-wook-2.endpoint.ainize.ai/)
 
 ## Usage
 
@@ -99,22 +99,7 @@ Result:
 ```
 
 Model weight for chosen language will be automatically downloaded or you can
-download it manually from the following links and put it in '~/.EasyOCR/model' folder
-
-- [text detection model (CRAFT)](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/craft_mlt_25k.zip)
-- [latin model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/latin.zip)
-- [chinese (traditional) model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/chinese.zip)
-- [chinese (simplified) model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/chinese_sim.zip)
-- [japanese model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/japanese.zip)
-- [korean model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/korean.zip)
-- [thai model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/thai.zip)
-- [devanagari model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/devanagari.zip)
-- [cyrillic model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/cyrillic.zip)
-- [arabic model](https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/arabic.zip)
-- [tamil model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.1.7/tamil.zip)
-- [bengali model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.1.8/bengali.zip)
-- [telugu model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.2/telugu.zip)
-- [kannada model](https://github.com/JaidedAI/EasyOCR/releases/download/v1.2/kannada.zip)
+download it manually from the [model hub](https://www.jaided.ai/easyocr/modelhub) and put it in '~/.EasyOCR/model' folder
 
 In case you do not have GPU or your GPU has low memory, you can run it in CPU mode by adding gpu = False
 
@@ -141,7 +126,7 @@ $ easyocr -l ch_sim en -f chinese.jpg --detail=1 --gpu=True
 7. Restructure code to support swappable detection and recognition algorithm.
 The api should be as easy as
 ``` python
-reader = easyocr.Reader(['en'], detection='DB', recognition = 'CNN_Transformer')
+reader = easyocr.Reader(['en'], detection='DB', recognition = 'Transformer')
 ```
 The idea is to be able to plug-in any state-of-the-art model into EasyOCR. There are a lot of geniuses trying to make better detection/recognition model. We are not trying to be a genius here, just make genius's works quickly accessible to the public ... for free. (well I believe most geniuses want their work to create positive impact as fast/big as possible) The pipeline should be something like below diagram. Grey slots are placeholders for changeable light blue modules.
 
