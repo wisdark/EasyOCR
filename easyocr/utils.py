@@ -511,6 +511,29 @@ def group_text_box(polys, slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5, 
     # may need to check if box is really in image
     return merged_list, free_list
 
+def calculate_ratio(width,height):
+    '''
+    Calculate aspect ratio for normal use case (w>h) and vertical text (h>w)
+    '''
+    ratio = width/height
+    if ratio<1.0:
+        ratio = 1./ratio
+    return ratio
+
+def compute_ratio_and_resize(img,width,height,model_height):
+    '''
+    Calculate ratio and resize correctly for both horizontal text
+    and vertical case
+    '''
+    ratio = width/height
+    if ratio<1.0:
+        ratio = calculate_ratio(width,height)
+        img = cv2.resize(img,(model_height,int(model_height*ratio)), interpolation=Image.ANTIALIAS)
+    else:
+        img = cv2.resize(img,(int(model_height*ratio),model_height),interpolation=Image.ANTIALIAS)
+    return img,ratio
+
+
 def get_image_list(horizontal_list, free_list, img, model_height = 64, sort_output = True):
     image_list = []
     maximum_y,maximum_x = img.shape
@@ -519,10 +542,15 @@ def get_image_list(horizontal_list, free_list, img, model_height = 64, sort_outp
     for box in free_list:
         rect = np.array(box, dtype = "float32")
         transformed_img = four_point_transform(img, rect)
-        ratio = transformed_img.shape[1]/transformed_img.shape[0]
-        crop_img = cv2.resize(transformed_img, (int(model_height*ratio), model_height), interpolation =  Image.ANTIALIAS)
-        image_list.append( (box,crop_img) ) # box = [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
-        max_ratio_free = max(ratio, max_ratio_free)
+        ratio = calculate_ratio(transformed_img.shape[1],transformed_img.shape[0])
+        new_width = int(model_height*ratio)
+        if new_width == 0:
+            pass
+        else:
+            crop_img,ratio = compute_ratio_and_resize(transformed_img,transformed_img.shape[1],transformed_img.shape[0],model_height)
+            image_list.append( (box,crop_img) ) # box = [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
+            max_ratio_free = max(ratio, max_ratio_free)
+
 
     max_ratio_free = math.ceil(max_ratio_free)
 
@@ -534,10 +562,14 @@ def get_image_list(horizontal_list, free_list, img, model_height = 64, sort_outp
         crop_img = img[y_min : y_max, x_min:x_max]
         width = x_max - x_min
         height = y_max - y_min
-        ratio = width/height
-        crop_img = cv2.resize(crop_img, (int(model_height*ratio), model_height), interpolation =  Image.ANTIALIAS)
-        image_list.append( ( [[x_min,y_min],[x_max,y_min],[x_max,y_max],[x_min,y_max]] ,crop_img) )
-        max_ratio_hori = max(ratio, max_ratio_hori)
+        ratio = calculate_ratio(width,height)
+        new_width = int(model_height*ratio)
+        if new_width == 0:
+            pass
+        else:
+            crop_img,ratio = compute_ratio_and_resize(crop_img,width,height,model_height)
+            image_list.append( ( [[x_min,y_min],[x_max,y_min],[x_max,y_max],[x_min,y_max]] ,crop_img) )
+            max_ratio_hori = max(ratio, max_ratio_hori)
 
     max_ratio_hori = math.ceil(max_ratio_hori)
     max_ratio = max(max_ratio_hori, max_ratio_free)
@@ -694,21 +726,63 @@ def reformat_input(image):
     return img, img_cv_grey
 
 
+def reformat_input_batched(image, n_width=None, n_height=None):
+    """
+    reformats an image or list of images or a 4D numpy image array &
+    returns a list of corresponding img, img_cv_grey nd.arrays
+    image:
+        [file path, numpy-array, byte stream object,
+        list of file paths, list of numpy-array, 4D numpy array,
+        list of byte stream objects]
+    """
+    if ((isinstance(image, np.ndarray) and len(image.shape) == 4) or isinstance(image, list)):
+        # process image batches if image is list of image np arr, paths, bytes
+        img, img_cv_grey = [], []
+        for single_img in image:
+            clr, gry = reformat_input(single_img)
+            if n_width is not None and n_height is not None:
+                clr = cv2.resize(clr, (n_width, n_height))
+                gry = cv2.resize(gry, (n_width, n_height))
+            img.append(clr)
+            img_cv_grey.append(gry)
+        img, img_cv_grey = np.array(img), np.array(img_cv_grey)
+        # ragged tensors created when all input imgs are not of the same size
+        if len(img.shape) == 1 and len(img_cv_grey.shape) == 1:
+            raise ValueError("The input image array contains images of different sizes. " +
+                             "Please resize all images to same shape or pass n_width, n_height to auto-resize")
+    else:
+        img, img_cv_grey = reformat_input(image)
+    return img, img_cv_grey
+
+
 def make_rotated_img_list(rotationInfo, img_list):
     result_img_list = img_list[:]
 
     # add rotated images to original image_list
+    max_ratio=1
     if 90 in rotationInfo:
         for img_info in img_list:
-            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_90_COUNTERCLOCKWISE)))
+            ninty_image = cv2.rotate(img_info[1],cv2.ROTATE_90_COUNTERCLOCKWISE)
+            height,width = ninty_image.shape
+            ratio = calculate_ratio(width,height)
+            max_ratio = max(max_ratio,ratio)
+            result_img_list.append((img_info[0],ninty_image))
 
     if 180 in rotationInfo:
         for img_info in img_list:
-            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_180)))
+            one_eighty_image = cv2.rotate(img_info[1],cv2.ROTATE_180)
+            height,width = one_eighty_image.shape
+            ratio = calculate_ratio(width,height)
+            max_ratio = max(max_ratio,ratio)
+            result_img_list.append((img_info[0], one_eighty_image))
 
     if 270 in rotationInfo:
         for img_info in img_list:
-            result_img_list.append((img_info[0], cv2.rotate(img_info[1], cv2.ROTATE_90_CLOCKWISE)))
+            two_seventy_image = cv2.rotate(img_info[1], cv2.ROTATE_90_CLOCKWISE)
+            height,width = two_seventy_image.shape
+            ratio = calculate_ratio(width,height)
+            max_ratio = max(max_ratio,ratio)
+            result_img_list.append((img_info[0],two_seventy_image))
 
     return result_img_list
 

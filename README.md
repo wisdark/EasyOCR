@@ -2,7 +2,7 @@
 
 [![PyPI Status](https://badge.fury.io/py/easyocr.svg)](https://badge.fury.io/py/easyocr)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/JaidedAI/EasyOCR/blob/master/LICENSE)
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.fan/easyocr)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.to/easyocr)
 [![Tweet](https://img.shields.io/twitter/url/https/github.com/JaidedAI/EasyOCR.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20library:%20EasyOCR%20https://github.com/JaidedAI/EasyOCR)
 [![Twitter](https://img.shields.io/badge/twitter-@JaidedAI-blue.svg?style=flat)](https://twitter.com/JaidedAI)
 
@@ -11,6 +11,15 @@ Ready-to-use OCR with 80+ [supported languages](https://www.jaided.ai/easyocr) a
 [Try Demo on our website](https://www.jaided.ai/easyocr)
 
 ## What's new
+- 29 June 2021 - Version 1.4
+    - [Instruction](https://github.com/JaidedAI/EasyOCR/blob/master/custom_model.md) on training/using custom recognition model
+    - Example [dataset](https://www.jaided.ai/easyocr/modelhub) for model training
+    - Batched image inference for GPU (thanks [@SamSamhuns](https://github.com/SamSamhuns), see [PR](https://github.com/JaidedAI/EasyOCR/pull/458))
+    - Vertical text support (thanks [@interactivetech](https://github.com/interactivetech)). This is for rotated text, not to be confused with vertical Chinese or Japanese text. (see [PR](https://github.com/JaidedAI/EasyOCR/pull/450))
+    - Output in dictionary format (thanks [@A2va](https://github.com/A2va), see [PR](https://github.com/JaidedAI/EasyOCR/pull/441))
+- 30 May 2021 - Version 1.3.2
+    - Faster greedy decoder (thanks [@samayala22](https://github.com/samayala22))
+    - Fix bug when text box's aspect ratio is disproportional (thanks [iQuartic](https://iquartic.com/) for bug report)
 - 20 April 2021 - Version 1.3.1
     - Add support for PIL image (thanks [@prays](https://github.com/prays))
     - Add Tajik language (tjk)
@@ -21,17 +30,11 @@ Ready-to-use OCR with 80+ [supported languages](https://www.jaided.ai/easyocr) a
     EasyOCR will choose the latest model by default but you can also specify which model to use by passing `recog_network` argument when creating `Reader` instance.
     For example, `reader = easyocr.Reader(['en','fr'], recog_network = 'latin_g1')` will use the 1st generation Latin model.
     - List of all models: [Model hub](https://www.jaided.ai/easyocr/modelhub)
-- 22 February 2021 - Version 1.2.5
-    - Add dynamic quantization for faster CPU inference (it is enabled by default for CPU mode)
-    - More sensible confident score
-- 7 February 2021 - Version 1.2.4
-    - Faster CPU inference speed by using dynamic input shape (recognition rate increases by around 100% for images with a lot of text)
 
 - [Read all released notes](https://github.com/JaidedAI/EasyOCR/blob/master/releasenotes.md)
 
 ## What's coming next
-- Custom models
-- [New language support](https://github.com/JaidedAI/EasyOCR/issues/91)
+- Handwritten text support
 
 ## Examples
 
@@ -115,15 +118,14 @@ For more information, read [tutorial](https://www.jaided.ai/easyocr/tutorial) an
 $ easyocr -l ch_sim en -f chinese.jpg --detail=1 --gpu=True
 ```
 
+## Train/use your own model
+
+[read here](https://www.jaided.ai/custom_model.md)
+
 ## Implementation Roadmap
 
-1. Language packs: Expand support to more languages. We are aiming to cover > 80-90% of world's population. Also improve existing languages.
-2. Better documentation and api
-3. Language model for better decoding
-4. Handwritten support: The key is using GAN to generate realistic handwritten dataset.
-5. Faster processing time: model pruning (lite version) / quantization / export to other platforms (ONNX?)
-6. Open Dataset and model training pipeline
-7. Restructure code to support swappable detection and recognition algorithm.
+- Handwritten support
+- Restructure code to support swappable detection and recognition algorithm.
 The api should be as easy as
 ``` python
 reader = easyocr.Reader(['en'], detection='DB', recognition = 'Transformer')
