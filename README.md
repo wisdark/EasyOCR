@@ -10,7 +10,23 @@ Ready-to-use OCR with 80+ [supported languages](https://www.jaided.ai/easyocr) a
 
 [Try Demo on our website](https://www.jaided.ai/easyocr)
 
+Integrated into [Huggingface Spaces 🤗](https://huggingface.co/spaces) using [Gradio](https://github.com/gradio-app/gradio). Try out the Web Demo: [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/tomofi/EasyOCR)
+
+
 ## What's new
+- 15 September 2022 - Version 1.6.2
+    - Add CPU support for DBnet
+    - DBnet will only be compiled when users initialize DBnet detector.  
+- 1 September 2022 - Version 1.6.1
+    - Fix DBnet path bug for Windows
+    - Add new built-in model `cyrillic_g2`. This model is a new default for Cyrillic script.
+- 24 August 2022 - Version 1.6.0
+    - Restructure code to support alternative text detectors.
+    - Add detector `DBnet`, see [paper](https://arxiv.org/abs/2202.10304v1). It can be used by initializing like this `reader = easyocr.Reader(['en'], detect_network = 'dbnet18')`.
+- 2 June 2022 - Version 1.5.0
+    - Add trainer for CRAFT detection model (thanks[@gmuffiness](https://github.com/gmuffiness), see [PR](https://github.com/JaidedAI/EasyOCR/pull/739))
+- 9 April 2022 - Version 1.4.2
+    - Update dependencies (opencv and pillow issues)
 - 11 September 2021 - Version 1.4.1
     - Add trainer folder
     - Add `readtextlang` method (thanks[@arkya-art](https://github.com/arkya-art), see [PR](https://github.com/JaidedAI/EasyOCR/pull/525))
@@ -62,7 +78,7 @@ pip install easyocr
 For the latest development release:
 
 ``` bash
-pip install git+git://github.com/jaidedai/easyocr.git
+pip install git+https://github.com/JaidedAI/EasyOCR.git
 ```
 
 Note 1: For Windows, please install torch and torchvision first by following the official instructions here https://pytorch.org. On the pytorch website, be sure to select the right CUDA version you have. If you intend to run on CPU mode only, select `CUDA = None`.
@@ -126,7 +142,9 @@ $ easyocr -l ch_sim en -f chinese.jpg --detail=1 --gpu=True
 
 ## Train/use your own model
 
-[Read here](https://github.com/JaidedAI/EasyOCR/blob/master/custom_model.md)
+For recognition model, [Read here](https://github.com/JaidedAI/EasyOCR/blob/master/custom_model.md).
+
+For detection model (CRAFT), [Read here](https://github.com/JaidedAI/EasyOCR/blob/master/trainer/craft/README.md).
 
 ## Implementation Roadmap
 
@@ -146,13 +164,13 @@ This project is based on research and code from several papers and open-source r
 
 All deep learning execution is based on [Pytorch](https://pytorch.org). :heart:
 
-Detection execution uses the CRAFT algorithm from this [official repository](https://github.com/clovaai/CRAFT-pytorch) and their [paper](https://arxiv.org/abs/1904.01941) (Thanks @YoungminBaek from @clovaai). We also use their pretrained model.
+Detection execution uses the CRAFT algorithm from this [official repository](https://github.com/clovaai/CRAFT-pytorch) and their [paper](https://arxiv.org/abs/1904.01941) (Thanks @YoungminBaek from [@clovaai](https://github.com/clovaai)). We also use their pretrained model. Training script is provided by [@gmuffiness](https://github.com/gmuffiness).
 
-The recognition model is a CRNN ([paper](https://arxiv.org/abs/1507.05717)). It is composed of 3 main components: feature extraction (we are currently using [Resnet](https://arxiv.org/abs/1512.03385)) and VGG, sequence labeling ([LSTM](https://www.bioinf.jku.at/publications/older/2604.pdf)) and decoding ([CTC](https://www.cs.toronto.edu/~graves/icml_2006.pdf)). The training pipeline for recognition execution is a modified version of the [deep-text-recognition-benchmark](https://github.com/clovaai/deep-text-recognition-benchmark) framework. (Thanks @ku21fan from @clovaai) This repository is a gem that deserves more recognition.
+The recognition model is a CRNN ([paper](https://arxiv.org/abs/1507.05717)). It is composed of 3 main components: feature extraction (we are currently using [Resnet](https://arxiv.org/abs/1512.03385)) and VGG, sequence labeling ([LSTM](https://www.bioinf.jku.at/publications/older/2604.pdf)) and decoding ([CTC](https://www.cs.toronto.edu/~graves/icml_2006.pdf)). The training pipeline for recognition execution is a modified version of the [deep-text-recognition-benchmark](https://github.com/clovaai/deep-text-recognition-benchmark) framework. (Thanks [@ku21fan](https://github.com/ku21fan) from [@clovaai](https://github.com/clovaai)) This repository is a gem that deserves more recognition.
 
-Beam search code is based on this [repository](https://github.com/githubharald/CTCDecoder) and his [blog](https://towardsdatascience.com/beam-search-decoding-in-ctc-trained-neural-networks-5a889a3d85a7). (Thanks @githubharald)
+Beam search code is based on this [repository](https://github.com/githubharald/CTCDecoder) and his [blog](https://towardsdatascience.com/beam-search-decoding-in-ctc-trained-neural-networks-5a889a3d85a7). (Thanks [@githubharald](https://github.com/githubharald))
 
-Data synthesis is based on [TextRecognitionDataGenerator](https://github.com/Belval/TextRecognitionDataGenerator). (Thanks @Belval)
+Data synthesis is based on [TextRecognitionDataGenerator](https://github.com/Belval/TextRecognitionDataGenerator). (Thanks [@Belval](https://github.com/Belval))
 
 And a good read about CTC from distill.pub [here](https://distill.pub/2017/ctc/).
 
@@ -191,4 +209,4 @@ Due to limited resources, an issue older than 6 months will be automatically clo
 
 ## Business Inquiries
 
-For Enterprise Support, [Jaided AI](https://www.jaided.ai/) offers full service for custom OCR/AI systems from building, to maintenance and deployment. Click [here](https://www.jaided.ai/contactus) to contact us.
+For Enterprise Support, [Jaided AI](https://www.jaided.ai/) offers full service for custom OCR/AI systems from implementation, training/finetuning and deployment. Click [here](https://www.jaided.ai/contactus?ref=github) to contact us.

@@ -1,9 +1,8 @@
 """
 End-to-End Multi-Lingual Optical Character Recognition (OCR) Solution
 """
-
-from setuptools import setup
 from io import open
+from setuptools import setup
 
 with open('requirements.txt', encoding="utf-8-sig") as f:
     requirements = f.readlines()
@@ -17,7 +16,7 @@ setup(
     name='easyocr',
     packages=['easyocr'],
     include_package_data=True,
-    version='1.4.1',
+    version='1.6.2',
     install_requires=requirements,
     entry_points={"console_scripts": ["easyocr= easyocr.cli:main"]},
     license='Apache License 2.0',
@@ -32,4 +31,5 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable'
     ],
+
 )
